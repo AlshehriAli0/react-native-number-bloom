@@ -1,0 +1,122 @@
+# react-native-number-bloom
+
+> Animated numbers for React Native. Digits roll, fade, and blur on value change. Skia-rendered, `Intl.NumberFormat` support, New Architecture only.
+
+npm `react-native-number-bloom` • repo https://github.com/AlshehriAli0/react-native-number-bloom • MIT
+
+## Install
+
+```bash
+bun add react-native-number-bloom @shopify/react-native-skia react-native-reanimated react-native-worklets
+```
+
+Peers: `react >=19`, `react-native >=0.78`, Skia `>=2`, Reanimated `>=4`, Worklets `>=0.5`. RN only (no web). Works with Expo dev builds and bare RN; **not Expo Go** (needs native modules + New Arch).
+
+## Usage
+
+```tsx
+import { NumberBloom } from "react-native-number-bloom";
+
+<NumberBloom
+  value={price}                                       // number, required
+  format={{ style: "currency", currency: "USD" }}     // Intl.NumberFormatOptions
+  fontSize={32}
+  color="#000"
+/>
+```
+
+Drive `value` with state — animation is automatic. Component sizes to content; place inside a row `<View>` to inline with text. Only `value` tweens between renders; other props (`color`, `fontSize`, `format`, …) snap.
+
+## Exports
+
+```ts
+import {
+  NumberBloom,
+  // defaults — handy when overriding one timing prop while keeping the rest
+  DEFAULT_VALUE_TIMING, DEFAULT_ENTRANCE_TIMING, DEFAULT_SYMBOL_ENTRANCE_TIMING,
+  DEFAULT_OPACITY_TIMING, DEFAULT_BLOOM_BLUR, DEFAULT_STAGGER_GAP_MS,
+} from "react-native-number-bloom";
+import type { NumberBloomProps, TimingConfig, ValueTiming } from "react-native-number-bloom";
+```
+
+## Props
+
+| Prop | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `value` | `number` | required | Negative numbers supported; the minus sign animates in/out via `symbolEntranceTiming`. `NaN`/`Infinity` render as `"NaN"`/`"∞"`; digits fall back to 0. Pass `0` during loading — `undefined` will throw. |
+| `format` | `Intl.NumberFormatOptions` | — | `style: "currency" \| "percent" \| "unit" \| "decimal"`, `currency`, `notation: "compact"`, fraction digits, grouping, etc. |
+| `locales` | `Intl.LocalesArgument` | — | BCP 47, e.g. `"en-US"`, `"de-DE"`. |
+| `prefix` / `suffix` | `string` | — | Static text that animates in/out with the number. |
+| `font` | `SkFont \| null` | system font | From `useFont(require("./Font.otf"), fontSize)`. Null while loading is safe. |
+| `fontSize` | `number` | `16` | |
+| `color` | `string` | `"black"` | |
+| `letterSpacing` | `number` | `0` | |
+| `animated` | `boolean` | `true` | `false` = instant snap, no tween. |
+| `bloomBlur` | `number` | `2` | Blur radius. `0` disables bloom. |
+| `maxIntegerDigits` | `number` | `5` | Pre-allocated digit slots. `5` fits 99,999; `6` fits 999,999. Pick the smallest that covers your max value. |
+| `valueTiming` | `TimingConfig \| (prev, next) => TimingConfig` | scales with delta | Tween for the master value (digit roll). |
+| `entranceTiming` | `TimingConfig` | 280ms `Easing.out(cubic)` | Digit slot width + blur. |
+| `symbolEntranceTiming` | `TimingConfig` | 190ms `Easing.out(cubic)` | Commas, decimals, currency, sign. |
+| `opacityTiming` | `TimingConfig` | 300ms `bezier(0.25, 0.1, 0.25, 1)` | Slot opacity. |
+| `staggerGap` | `number` | `150` | Min ms between consecutive bloom entrances. |
+| `onAnimationStart` / `onAnimationEnd` | `() => void` | — | Per animated update, not per digit. |
+
+```ts
+interface TimingConfig { duration: number; easing: EasingFunction | EasingFunctionFactory; }
+```
+
+## Recipes
+
+```tsx
+// Percent — pass the DECIMAL (Intl multiplies by 100)
+<NumberBloom value={0.42} format={{ style: "percent" }} />
+
+// If your input is a whole percent (42 means "42%"), divide at the call site:
+<NumberBloom value={p / 100} format={{ style: "percent" }} />
+
+// Compact (1.2K, 3.4M)
+<NumberBloom value={1234567} format={{ notation: "compact" }} />
+
+// Locale
+<NumberBloom value={1234.56} locales="de-DE" format={{ style: "currency", currency: "EUR" }} />
+
+// Custom font — useFont comes from Skia, not this package
+import { useFont } from "@shopify/react-native-skia";
+const font = useFont(require("./Inter-Bold.otf"), 48);
+<NumberBloom value={n} font={font} fontSize={48} />
+
+// Inline with text
+<View style={{ flexDirection: "row", alignItems: "center" }}>
+  <Text>You have </Text>
+  <NumberBloom value={balance} format={{ style: "currency", currency: "USD" }} fontSize={18} />
+</View>
+
+// Snap, no animation
+<NumberBloom value={n} animated={false} />
+
+// Animate from 0 on mount — first render snaps; trigger the tween by setting state after mount
+const [n, setN] = useState(0);
+useEffect(() => { setN(1234.56); }, []);
+<NumberBloom value={n} />
+
+// Delta-aware tween (big jumps last longer)
+<NumberBloom
+  value={n}
+  valueTiming={(prev, next) => ({
+    duration: Math.min(1200, 300 + Math.abs(next - prev) * 0.4),
+    easing: Easing.out(Easing.cubic),
+  })}
+/>
+
+// Big numbers — raise the cap
+<NumberBloom value={count} maxIntegerDigits={7} />
+```
+
+## Gotchas
+
+- **Percent takes a decimal.** `0.42` → "42%". Passing `42` shows `4,200%`.
+- **Set `maxIntegerDigits` to your max.** Default 5 = up to 99,999; pick the smallest that fits. Exceeding it still works but loses the perf win.
+- **New Architecture required.** Won't work on the legacy renderer.
+- **No children, no `style` prop.** Configure via the props above. For bold/italic, load a Skia font file with that weight.
+- **Width animates with the value.** That's intentional — don't wrap in a fixed-width container unless you want clipping.
+- **Not a `<Text>` node.** It's a Skia `<Canvas>`. Place as a sibling in row layouts, not inside `<Text>`.

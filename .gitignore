@@ -20,6 +20,7 @@ android/app/build
 **/*.xcworkspace/xcuserdata
 **/*.xcodeproj/xcuserdata
 **/*.xcodeproj/project.xcworkspace/xcuserdata
+codedb.snapshot
 
 # IDE
 .vscode/*
