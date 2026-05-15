@@ -1,0 +1,26 @@
+node_modules
+lib
+coverage
+*.log
+.DS_Store
+
+# Expo
+.expo
+.expo-shared
+web-build
+dist
+
+# Native
+ios/Pods
+ios/build
+android/build
+android/.gradle
+android/app/build
+**/*.xcworkspace/xcuserdata
+**/*.xcodeproj/xcuserdata
+**/*.xcodeproj/project.xcworkspace/xcuserdata
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+.idea
