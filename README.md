@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/alshehriali0/react-native-number-bloom/main/.github/demo.gif" alt="demo" width="320" />
+  <img src="https://raw.githubusercontent.com/alshehriali0/react-native-number-bloom/main/.github/demo.gif" alt="demo" width="720" />
 </p>
 
 Drop-in animated number component rendered on Skia, with full `Intl.NumberFormat` support (currency, percent, locales, grouping, compact). Built for the New Architecture. Requires `@shopify/react-native-skia` 2.x.
