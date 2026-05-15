@@ -50,7 +50,7 @@
   "author": "Ali Alshehri",
   "license": "MIT",
   "scripts": {
-    "prepack": "bun run clean && bun run build && cp ../README.md ./README.md",
+    "prepack": "cp ../README.md ./README.md",
     "postpack": "rm -f ./README.md",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
@@ -97,7 +97,7 @@
     "npm": {
       "publish": true,
       "skipChecks": true,
-      "publishArgs": ["--provenance", "--access", "public"]
+      "publishArgs": ["--provenance --access public"]
     },
     "github": {
       "release": true
