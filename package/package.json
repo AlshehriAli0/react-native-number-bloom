@@ -41,11 +41,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alshehriali0/react-native-number-bloom.git"
+    "url": "git+https://github.com/AlshehriAli0/react-native-number-bloom.git"
   },
-  "homepage": "https://github.com/alshehriali0/react-native-number-bloom#readme",
+  "homepage": "https://github.com/AlshehriAli0/react-native-number-bloom#readme",
   "bugs": {
-    "url": "https://github.com/alshehriali0/react-native-number-bloom/issues"
+    "url": "https://github.com/AlshehriAli0/react-native-number-bloom/issues"
   },
   "author": "Ali Alshehri",
   "license": "MIT",

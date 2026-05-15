@@ -7,11 +7,11 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/react-native-number-bloom"><img src="https://img.shields.io/npm/v/react-native-number-bloom" alt="npm version" /></a>
   <a href="https://www.npmjs.com/package/react-native-number-bloom"><img src="https://img.shields.io/npm/dm/react-native-number-bloom" alt="npm downloads" /></a>
-  <a href="https://github.com/alshehriali0/react-native-number-bloom/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/react-native-number-bloom" alt="license" /></a>
+  <a href="https://github.com/AlshehriAli0/react-native-number-bloom/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/react-native-number-bloom" alt="license" /></a>
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/alshehriali0/react-native-number-bloom/main/.github/demo.gif" alt="demo" width="720" />
+  <img src="https://raw.githubusercontent.com/AlshehriAli0/react-native-number-bloom/main/.github/demo.gif" alt="demo" width="720" />
 </p>
 
 Drop-in animated number component rendered on Skia, with full `Intl.NumberFormat` support (currency, percent, locales, grouping, compact). Built for the New Architecture. Requires `@shopify/react-native-skia` 2.x.
