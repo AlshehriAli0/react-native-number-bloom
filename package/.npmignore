@@ -1,0 +1,4 @@
+# Intentionally empty. With `files` set in package.json and no .npmignore,
+# npm falls back to .gitignore, which excludes lib/ (build output we DO want
+# to ship). Having this file present overrides that fallback so the `files`
+# field is the sole source of truth for what gets packed.
