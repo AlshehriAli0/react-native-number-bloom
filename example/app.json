@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.alialshehri.example"
+      "bundleIdentifier": "com.alshehriali0.example"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +23,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.alialshehri.example"
+      "package": "com.alshehriali0.example"
     },
     "web": {
       "favicon": "./assets/favicon.png"
