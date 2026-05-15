@@ -91,8 +91,8 @@ export const formatToKeyedParts = (
   value: number,
   locales: Intl.LocalesArgument,
   options: Intl.NumberFormatOptions | undefined,
-  prefix: string,
-  suffix: string
+  prefix: string | undefined,
+  suffix: string | undefined
 ): KeyedPart[] => {
   const formatter = getFormatter(locales, options);
   const parts = getParts(formatter, value);
@@ -198,8 +198,8 @@ export const buildPreallocatedParts = (
   maxIntegerDigits: number,
   format: Intl.NumberFormatOptions | undefined,
   locales: Intl.LocalesArgument,
-  prefix: string,
-  suffix: string
+  prefix: string | undefined,
+  suffix: string | undefined
 ): KeyedPart[] => {
   if (!isStandardNotation(format)) return [];
   // For `style: "percent"`, Intl multiplies by 100; counteract so the probe

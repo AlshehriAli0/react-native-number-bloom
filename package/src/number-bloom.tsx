@@ -38,8 +38,7 @@ import { resolveSystemFont } from "./core/system-font";
 import type { KeyedPart, NumberBloomProps } from "./types";
 
 /**
- * Skia-powered animated number. Digits bloom in and collapse out with a single
- * master tween driving every slot; supports the full `Intl.NumberFormat` API.
+ * Animated number with full `Intl.NumberFormat` support.
  *
  * @example
  * <NumberBloom value={price} format={{ style: "currency", currency: "USD" }} fontSize={32} />
@@ -48,8 +47,8 @@ export const NumberBloom = ({
   value,
   format,
   locales,
-  prefix = "",
-  suffix = "",
+  prefix,
+  suffix,
   font: fontProp,
   fontSize = DEFAULT_FONT_SIZE,
   color = DEFAULT_COLOR,
@@ -95,8 +94,8 @@ export const NumberBloom = ({
   // to match what's actually rendered so the digits land on the right glyphs.
   const displayValue = useMemo(() => (format?.style === "percent" ? safeValue * 100 : safeValue), [safeValue, format]);
 
-  // Mutable instance holder; mutations confined to effects (React Compiler safe).
-  const slotsMap = useRef<SlotMap>(new Map()).current;
+  // Stable Map identity via lazy init; mutations confined to effects (React Compiler safe).
+  const [slotsMap] = useState<SlotMap>(() => new Map());
   const [orderState, setOrderState] = useState<string[]>([]);
 
   const prevValueRef = useRef(displayValue);

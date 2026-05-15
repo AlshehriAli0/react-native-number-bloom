@@ -102,8 +102,27 @@ export const computeStaggerDelays = ({
   enteringDigits.sort((a, b) => (a.power ?? 0) - (b.power ?? 0));
   exitingDigits.sort((a, b) => (b.power ?? 0) - (a.power ?? 0));
 
+  // Threshold against `sign(prev)*P` for exits and `sign(next)*P` for
+  // entrances so the timing tracks `|v(t)|` (the digit-roll math uses |value|).
+  // Required for negative↔positive transitions.
+  const prevSign = prev < 0 ? -1 : 1;
+  const nextSign = next < 0 ? -1 : 1;
+
+  // Big growth jumps bunch threshold delays at t≈0 (the eased value rushes
+  // through small magnitudes early). Anchor the first and last digits to their
+  // thresholds and interpolate the middle ones for uniform spacing.
+  const enteringThresholds = enteringDigits.map(p =>
+    computeThresholdDelay(prev, next, nextSign * (p.power ?? 0), duration)
+  );
+  const firstThreshold = enteringThresholds[0] ?? 0;
+  const lastThreshold = enteringThresholds[enteringThresholds.length - 1] ?? 0;
+  const N = enteringThresholds.length;
   const enteringDigitDelays = enforceMinGap(
-    enteringDigits.map(p => computeThresholdDelay(prev, next, p.power ?? 0, duration)),
+    enteringThresholds.map((t, i) => {
+      if (N <= 1) return t;
+      const interp = Math.round(firstThreshold + (i / (N - 1)) * (lastThreshold - firstThreshold));
+      return Math.max(t, interp);
+    }),
     gapMs
   );
   for (let i = 0; i < enteringDigits.length; i++) {
@@ -113,7 +132,7 @@ export const computeStaggerDelays = ({
   }
 
   const exitingDigitDelays = enforceMinGap(
-    exitingDigits.map(p => computeThresholdDelay(prev, next, p.power ?? 0, duration)),
+    exitingDigits.map(p => computeThresholdDelay(prev, next, prevSign * (p.power ?? 0), duration)),
     gapMs
   );
   for (let i = 0; i < exitingDigits.length; i++) {
@@ -122,9 +141,11 @@ export const computeStaggerDelays = ({
     if (p && d != null) out.set(p.key, d);
   }
 
-  // For group separators, inherit the delay of the adjacent digit so the
-  // comma blooms in with the "1" of "1,000" rather than at t=0 on its own.
-  // Other symbols (currency, decimal, percent, prefix/suffix) appear at t=0.
+  // Minus/plus signs animate at the zero crossing, not t=0.
+  const zeroCrossingDelay = computeThresholdDelay(prev, next, 0, duration);
+
+  // Group separators inherit the delay of the adjacent digit so the comma
+  // blooms with the "1" of "1,000" rather than at t=0 on its own.
   const partIndex = new Map<string, number>();
   for (let i = 0; i < parts.length; i++) {
     const p = parts[i];
@@ -132,6 +153,7 @@ export const computeStaggerDelays = ({
   }
   const isAnimating = (p: KeyedPart) => p.type === "digit" && (enteringKeys.has(p.key) || exitingKeys.has(p.key));
   const inheritedDelay = (sym: KeyedPart): number => {
+    if (sym.kind === "minusSign" || sym.kind === "plusSign") return zeroCrossingDelay;
     if (sym.kind !== "group") return 0;
     const idx = partIndex.get(sym.key);
     if (idx == null) return 0;

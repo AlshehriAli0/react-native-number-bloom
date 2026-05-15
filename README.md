@@ -64,8 +64,8 @@ export function PriceDisplay() {
 | `value` | `number` | - | The number to display. Required. |
 | `format` | `Intl.NumberFormatOptions` | - | Currency, percent, units, compact, grouping, fraction digits. |
 | `locales` | `Intl.LocalesArgument` | - | BCP 47 locale(s). Controls separators and numbering system. |
-| `prefix` | `string` | `""` | Static text prepended; animates in/out. |
-| `suffix` | `string` | `""` | Static text appended; animates in/out. |
+| `prefix` | `string` | - | Static text prepended; animates in/out. |
+| `suffix` | `string` | - | Static text appended; animates in/out. |
 | `font` | `SkFont \| null` | system font | Pre-loaded Skia font, e.g. `useFont(require("./Inter-Bold.otf"), fontSize)`. |
 | `fontSize` | `number` | `16` | Font size in points. |
 | `color` | `string` | `"black"` | Text color. |
