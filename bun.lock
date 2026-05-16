@@ -31,7 +31,7 @@
     },
     "package": {
       "name": "react-native-number-bloom",
-      "version": "0.1.0",
+      "version": "1.1.0",
       "devDependencies": {
         "@release-it/conventional-changelog": "^10.0.0",
         "@shopify/react-native-skia": "^2.6.2",
@@ -45,11 +45,15 @@
       },
       "peerDependencies": {
         "@shopify/react-native-skia": ">=2.0.0",
+        "@types/react": ">=19.0.0",
         "react": ">=19.0.0",
         "react-native": ">=0.78.0",
         "react-native-reanimated": ">=4.0.0",
         "react-native-worklets": ">=0.5.0",
       },
+      "optionalPeers": [
+        "@types/react",
+      ],
     },
   },
   "trustedDependencies": [

@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import { scheduleOnUI } from "react-native-worklets";
 import { DigitSlot } from "./components/digit-slot";
@@ -33,6 +34,7 @@ import {
 } from "./core/constants";
 import { buildPreallocatedParts, formatToKeyedParts } from "./core/format";
 import { computeMetrics, type GlyphMetrics } from "./core/metrics";
+import { measureKernedSlotWidths } from "./core/paragraph-measure";
 import { computeSlotWidth, computeStaggerDelays, mergeKeyOrder } from "./core/slots";
 import { resolveSystemFont } from "./core/system-font";
 import type { KeyedPart, NumberBloomProps } from "./types";
@@ -146,8 +148,15 @@ export const NumberBloom = ({
       setOrderState(mergedOrder);
     }
 
+    // Kerned widths match RN `<Text>` positioning; falls back to raw advance.
+    const kernedWidths = measureKernedSlotWidths(font, parts, fontSize);
     const targetWidths = new Map<string, number>();
     for (const part of parts) {
+      const kerned = kernedWidths.get(part.key);
+      if (kerned != null) {
+        targetWidths.set(part.key, kerned + letterSpacing);
+        continue;
+      }
       targetWidths.set(part.key, computeSlotWidth(part, font, metrics, letterSpacing));
     }
 
@@ -246,19 +255,38 @@ export const NumberBloom = ({
 
     onAnimationStartRef.current?.();
 
+    // The smallest-power digit's wheel cycles through every glyph mid-roll, so
+    // intermediate values (e.g. "0") can overflow a narrow settled width (e.g.
+    // "1") and get chopped at the container's right edge. Animate that slot to
+    // maxDigitWidth instead, then snap it back to the kerned width after the
+    // roll settles. `settledPinnedWidth` is the post-roll target captured here.
+    let pinnedDigitPower: number | undefined;
+    let pinnedKey: string | undefined;
+    for (const part of parts) {
+      if (part.type !== "digit" || part.power == null) continue;
+      if (pinnedDigitPower == null || part.power < pinnedDigitPower) {
+        pinnedDigitPower = part.power;
+        pinnedKey = part.key;
+      }
+    }
+    const expandedPinnedWidth = metrics.maxDigitWidth + letterSpacing;
+    const settledPinnedWidth = pinnedKey != null ? targetWidths.get(pinnedKey) : undefined;
+    const pinForRoll = pinnedKey != null && settledPinnedWidth != null && settledPinnedWidth < expandedPinnedWidth;
+
     // Build a plain instructions array on the JS thread so the worklet doesn't
     // need to iterate Maps/Sets (which are unreliable as Shareables).
     const instructions: SlotInstruction[] = [];
     for (const [key, slot] of slotsMap) {
-      const target = targetWidths.get(key);
-      const isExiting = exitingKeys.has(key) || target == null;
+      const rawTarget = targetWidths.get(key);
+      const isExiting = exitingKeys.has(key) || rawTarget == null;
       const isEntering = enteringKeys.has(key);
       const slotTiming = slot.type === "digit" ? entranceTiming : symbolEntranceTiming;
+      const target = pinForRoll && key === pinnedKey ? expandedPinnedWidth : (rawTarget ?? 0);
       instructions.push({
         widthSV: slot.widthSV,
         opacitySV: slot.opacitySV,
         blurSV: slot.blurSV,
-        target: target ?? 0,
+        target,
         delay: delays.get(key) ?? 0,
         widthMs: slotTiming.duration,
         widthEasing: slotTiming.easing,
@@ -302,6 +330,21 @@ export const NumberBloom = ({
         prevOrderRef.current = filtered;
         setOrderState(filtered);
       }
+      // Snap the pinned slot back to its kerned (settled) width so the
+      // container matches `<Text>` again at rest.
+      if (pinForRoll && pinnedKey != null && settledPinnedWidth != null) {
+        const slot = slotsMap.get(pinnedKey);
+        if (slot) {
+          const widthSV = slot.widthSV;
+          const target = settledPinnedWidth;
+          const duration = opacityTiming.duration;
+          const easing = opacityTiming.easing;
+          scheduleOnUI(() => {
+            "worklet";
+            widthSV.set(withTiming(target, { duration, easing }));
+          });
+        }
+      }
       onAnimationEndRef.current?.();
     }, totalMs);
 
@@ -318,6 +361,7 @@ export const NumberBloom = ({
     opacityTiming,
     parts,
     prealloc,
+    fontSize,
     shouldAnimate,
     slotsMap,
     staggerGap,

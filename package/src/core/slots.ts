@@ -49,14 +49,29 @@ export const mergeKeyOrder = (oldKeys: readonly string[], nextKeys: readonly str
 // of the digit advance so the symbol has breathing room.
 const CURRENCY_PAD_RATIO = 0.18;
 
-/** Settled slot width. Digits use `maxDigitWidth` so the slot doesn't bounce as the wheel rolls 0–9. */
+/**
+ * Settled slot width. Digit slots size to the settled digit's advance so narrow
+ * glyphs (e.g. "1") don't sit in oversized slots — otherwise "11,711" reads
+ * like "1 1 , 7 1 1". Mid-roll, a wider intermediate digit can briefly
+ * overshoot the slot, but `DigitSlot`'s `maxDigitWidth` clip rect prevents
+ * chopping.
+ *
+ * The smallest-power digit (`pinnedDigitPower`) stays at `maxDigitWidth`: it
+ * cycles through every digit repeatedly during a roll, and any width-bouncing
+ * there is highly visible since it has no right-neighbor to shift along with.
+ */
 export const computeSlotWidth = (
   part: KeyedPart,
   font: SkFont,
   metrics: GlyphMetrics,
-  letterSpacing: number
+  letterSpacing: number,
+  pinnedDigitPower?: number
 ): number => {
-  if (part.type === "digit") return metrics.maxDigitWidth + letterSpacing;
+  if (part.type === "digit") {
+    if (part.power === pinnedDigitPower) return metrics.maxDigitWidth + letterSpacing;
+    const glyph = metrics.digitWidths[part.digitValue] ?? metrics.maxDigitWidth;
+    return glyph + letterSpacing;
+  }
   const base = measureChar(font, metrics, part.char) + letterSpacing;
   if (part.kind === "currency") return base + metrics.maxDigitWidth * CURRENCY_PAD_RATIO;
   return base;
