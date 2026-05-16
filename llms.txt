@@ -52,6 +52,7 @@ import type { NumberBloomProps, TimingConfig, ValueTiming } from "react-native-n
 | `color` | `string` | `"black"` | |
 | `letterSpacing` | `number` | `0` | |
 | `animated` | `boolean` | `true` | `false` = instant snap, no tween. |
+| `shouldAnimate` | `(prev, next) => boolean` | — | Per-update predicate; `true` animates, `false` snaps. `prev`/`next` are in the same space as `valueTiming`'s callback (i.e. percent is ×100). Ignored when `animated` is `false`. |
 | `bloomBlur` | `number` | `2` | Blur radius. `0` disables bloom. |
 | `maxIntegerDigits` | `number` | `5` | Pre-allocated digit slots. `5` fits 99,999; `6` fits 999,999. Pick the smallest that covers your max value. |
 | `valueTiming` | `TimingConfig \| (prev, next) => TimingConfig` | scales with delta | Tween for the master value (digit roll). |
@@ -93,6 +94,15 @@ const font = useFont(require("./Inter-Bold.otf"), 48);
 
 // Snap, no animation
 <NumberBloom value={n} animated={false} />
+
+// Animate only meaningful changes — snap sub-cent jitter, snap huge catch-up jumps
+<NumberBloom
+  value={price}
+  shouldAnimate={(prev, next) => {
+    const delta = Math.abs(next - prev);
+    return delta >= 0.01 && delta < 1000;
+  }}
+/>
 
 // Animate from 0 on mount — first render snaps; trigger the tween by setting state after mount
 const [n, setN] = useState(0);

@@ -83,6 +83,24 @@ export interface NumberBloomProps {
   /** When `false`, value changes apply instantly. Default: `true`. */
   animated?: boolean;
 
+  /**
+   * Decide whether each value change should animate. Receives the previous and
+   * next `value`. Return `true` to animate, or `false` to jump straight to the
+   * new number with no animation. Useful when you only want to animate
+   * meaningful changes and ignore tiny updates or huge jumps.
+   *
+   * Note: when `format.style` is `"percent"`, the values passed in are
+   * pre-scaled by 100 (matching `valueTiming`'s callback), so `0.42` arrives as
+   * `42`.
+   *
+   * Ignored when `animated` is `false`.
+   *
+   * @example
+   * // Only animate when the change is at least 1
+   * shouldAnimate={(prev, next) => Math.abs(next - prev) >= 1}
+   */
+  shouldAnimate?: (prev: number, next: number) => boolean;
+
   /** Tween for the master value (drives digit roll). Pass a function to scale with delta. */
   valueTiming?: ValueTiming;
 

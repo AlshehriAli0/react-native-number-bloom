@@ -7,12 +7,7 @@
   "types": "lib/index.d.ts",
   "react-native": "src/index",
   "source": "src/index",
-  "files": [
-    "src",
-    "lib",
-    "README.md",
-    "LICENSE"
-  ],
+  "files": ["src", "lib", "README.md", "LICENSE"],
   "sideEffects": false,
   "keywords": [
     "react-native",
@@ -102,11 +97,7 @@
     "npm": {
       "publish": true,
       "skipChecks": true,
-      "publishArgs": [
-        "--provenance",
-        "--access",
-        "public"
-      ]
+      "publishArgs": ["--provenance", "--access", "public"]
     },
     "github": {
       "release": true

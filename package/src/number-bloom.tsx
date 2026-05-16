@@ -54,6 +54,7 @@ export const NumberBloom = ({
   color = DEFAULT_COLOR,
   letterSpacing = 0,
   animated = true,
+  shouldAnimate,
   valueTiming = DEFAULT_VALUE_TIMING,
   entranceTiming = DEFAULT_ENTRANCE_TIMING,
   symbolEntranceTiming = DEFAULT_SYMBOL_ENTRANCE_TIMING,
@@ -179,7 +180,9 @@ export const NumberBloom = ({
     const prev = prevValueRef.current;
     prevValueRef.current = displayValue;
 
-    if (!animated) {
+    // `shouldAnimate` lets the caller veto the tween per-update (e.g. skip
+    // sub-cent jitter). Same value space as `valueTiming`'s callback.
+    if (!animated || shouldAnimate?.(prev, displayValue) === false) {
       if (maxIntegerDigits == null) {
         for (const key of [...slotsMap.keys()]) {
           if (!currentActiveKeys.has(key)) slotsMap.delete(key);
@@ -315,6 +318,7 @@ export const NumberBloom = ({
     opacityTiming,
     parts,
     prealloc,
+    shouldAnimate,
     slotsMap,
     staggerGap,
     symbolEntranceTiming,
