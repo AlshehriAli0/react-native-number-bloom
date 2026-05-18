@@ -4,6 +4,7 @@ import {
   type SkParagraphBuilder,
   type SkTypeface,
   type SkTypefaceFontProvider,
+  TextDirection,
 } from "@shopify/react-native-skia";
 import type { KeyedPart } from "../types";
 
@@ -29,7 +30,8 @@ const getBuilder = (typeface: SkTypeface): SkParagraphBuilder => {
     builder.reset();
     return builder;
   }
-  builder = Skia.ParagraphBuilder.Make({}, getProvider(typeface));
+  // Force LTR so kerned widths don't change under an RTL system locale.
+  builder = Skia.ParagraphBuilder.Make({ textDirection: TextDirection.LTR }, getProvider(typeface));
   builderCache.set(typeface, builder);
   return builder;
 };

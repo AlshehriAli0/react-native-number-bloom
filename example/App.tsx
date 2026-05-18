@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { DevSettings, I18nManager, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { NumberBloom } from "react-native-number-bloom";
 
 const STEPS = [-11000, -612, -47, 51, 638, 11000] as const;
@@ -23,6 +23,13 @@ const FORMATS = {
 type FormatKey = keyof typeof FORMATS;
 const FORMAT_KEYS = Object.keys(FORMATS) as FormatKey[];
 
+const toggleRTL = () => {
+  const next = !I18nManager.isRTL;
+  I18nManager.allowRTL(next);
+  I18nManager.forceRTL(next);
+  DevSettings.reload();
+};
+
 export default function App() {
   const [count, setCount] = useState(INITIAL_COUNT);
   const [formatKey, setFormatKey] = useState<FormatKey>("plain");
@@ -33,7 +40,7 @@ export default function App() {
 
   return (
     <View style={styles.safe}>
-      <Text style={styles.title}>react-native-number-bloom</Text>
+      <Text style={styles.title}>react-native-number-bloom {I18nManager.isRTL ? "(RTL)" : "(LTR)"}</Text>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.numberWrap}>
           {inline ? (
@@ -61,6 +68,9 @@ export default function App() {
           </Pressable>
           <Pressable style={[styles.pill, inline && styles.pillActive]} onPress={() => setInline(p => !p)}>
             <Text style={[styles.pillText, inline && styles.pillTextActive]}>Inline</Text>
+          </Pressable>
+          <Pressable style={[styles.pill, styles.pillRTL]} onPress={toggleRTL}>
+            <Text style={styles.pillText}>{I18nManager.isRTL ? "→ LTR" : "← RTL"}</Text>
           </Pressable>
         </View>
 
@@ -120,6 +130,10 @@ const styles = StyleSheet.create({
   pillActive: {
     borderColor: "#666",
     backgroundColor: "#1c1c1c",
+  },
+  pillRTL: {
+    borderColor: "#7a4a00",
+    backgroundColor: "#2a1a00",
   },
   pillText: { color: "#bbb", fontSize: 14, fontWeight: "500" },
   pillTextActive: { color: "#fff" },

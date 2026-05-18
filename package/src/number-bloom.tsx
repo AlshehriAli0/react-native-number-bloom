@@ -32,6 +32,7 @@ import {
   DEFAULT_SYMBOL_ENTRANCE_TIMING,
   DEFAULT_VALUE_TIMING,
 } from "./core/constants";
+import { substituteSymbolChars } from "./core/font-fallbacks";
 import { buildPreallocatedParts, formatToKeyedParts } from "./core/format";
 import { computeMetrics, type GlyphMetrics } from "./core/metrics";
 import { measureKernedSlotWidths } from "./core/paragraph-measure";
@@ -80,16 +81,22 @@ export const NumberBloom = ({
   // "NaN"/"∞" via `formatToKeyedParts(value, ...)` below, which uses the raw value.
   const safeValue = Number.isFinite(value) ? value : 0;
 
-  const parts = useMemo<KeyedPart[]>(
+  const rawParts = useMemo<KeyedPart[]>(
     () => formatToKeyedParts(value, locales, format, prefix, suffix),
     [value, locales, format, prefix, suffix]
   );
 
   // Probe Intl once per format/locale/cap rather than on every value change.
-  const prealloc = useMemo<KeyedPart[]>(
+  const rawPrealloc = useMemo<KeyedPart[]>(
     () => (maxIntegerDigits != null ? buildPreallocatedParts(maxIntegerDigits, format, locales, prefix, suffix) : []),
     [maxIntegerDigits, format, locales, prefix, suffix]
   );
+
+  // Swap separators the app font can't render (e.g. ARABIC THOUSANDS SEPARATOR
+  // ٬) for Latin equivalents — otherwise SkiaText draws `.notdef` and overlaps
+  // the next slot.
+  const parts = useMemo<KeyedPart[]>(() => substituteSymbolChars(rawParts, font), [rawParts, font]);
+  const prealloc = useMemo<KeyedPart[]>(() => substituteSymbolChars(rawPrealloc, font), [rawPrealloc, font]);
 
   // The digit slots read from `valueSV` and compute `floor(v / power) % 10`.
   // For `style: "percent"`, Intl multiplies by 100 *for display only*, so the
@@ -148,16 +155,19 @@ export const NumberBloom = ({
       setOrderState(mergedOrder);
     }
 
-    // Kerned widths match RN `<Text>` positioning; falls back to raw advance.
+    // Floor kerned width at the raw advance — each slot renders an isolated
+    // glyph (no inter-slot kerning), so a kerned pair-width smaller than the
+    // standalone advance lets the render overflow into the next slot.
     const kernedWidths = measureKernedSlotWidths(font, parts, fontSize);
     const targetWidths = new Map<string, number>();
     for (const part of parts) {
+      const advance = computeSlotWidth(part, font, metrics, letterSpacing);
       const kerned = kernedWidths.get(part.key);
-      if (kerned != null) {
-        targetWidths.set(part.key, kerned + letterSpacing);
+      if (kerned == null) {
+        targetWidths.set(part.key, advance);
         continue;
       }
-      targetWidths.set(part.key, computeSlotWidth(part, font, metrics, letterSpacing));
+      targetWidths.set(part.key, Math.max(kerned + letterSpacing, advance));
     }
 
     const buildSnapInstructions = (): SnapInstruction[] => {

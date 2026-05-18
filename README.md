@@ -23,6 +23,7 @@ Unlike a typical odometer that rolls loudly through every digit, NumberBloom sna
 - **Fast even on low-end devices.** GPU-accelerated rendering through Skia, with animations running on the UI thread via Reanimated and Worklets, so the JS thread stays free. React Compiler safe.
 - **Bloom, not odometer.** A soft snap-and-bloom transition instead of a noisy digit roll, easier on the eye for rapidly changing values.
 - **Full `Intl.NumberFormat` support.** Currency, percent, units, compact, locales, grouping, fraction digits.
+- **RTL support.** Renders correctly under `I18nManager.forceRTL(true)` and Arabic locales.
 - **Conditional animation.** `shouldAnimate(prev, next)` decides per update whether to animate or jump straight to the new number.
 - **Stable layout.** Pre-allocated digit slots keep the width steady as numbers grow, so surrounding UI never shifts.
 
