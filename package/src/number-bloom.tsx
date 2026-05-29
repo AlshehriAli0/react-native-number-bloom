@@ -135,7 +135,7 @@ export const NumberBloom = ({
     const currentActiveKeys = new Set(currentKeys);
 
     const allKnownParts: KeyedPart[] = prealloc.length ? [...prealloc, ...parts] : parts;
-    ensureSlots(slotsMap, allKnownParts, makeMutable);
+    const glyphChanged = ensureSlots(slotsMap, allKnownParts, makeMutable);
 
     // Prealloc gives the canonical wide layout, but the probe uses a positive
     // value so it never includes minusSign. Merge in `currentKeys` so signs
@@ -153,21 +153,28 @@ export const NumberBloom = ({
     if (!orderSame) {
       prevOrderRef.current = mergedOrder;
       setOrderState(mergedOrder);
+    } else if (glyphChanged) {
+      // A symbol's glyph changed in place (e.g. currency $→€) without altering
+      // the slot order. `slotViews` memoizes on `orderState`, so hand it a fresh
+      // array reference to force a rebuild and render the new glyph.
+      setOrderState(prev => prev.slice());
     }
 
-    // Floor kerned width at the raw advance — each slot renders an isolated
-    // glyph (no inter-slot kerning), so a kerned pair-width smaller than the
-    // standalone advance lets the render overflow into the next slot.
+    // Use the shaped (kerned) width so the laid-out number matches `<Text>`. The
+    // raw `getGlyphWidths` advance ignores shaping and runs a few px wide per
+    // glyph (a narrow "1" advances ~20px but shapes to ~18px), which sums into
+    // visible drift. The rolling digit still expands to `maxDigitWidth` mid-roll
+    // and every digit clips to it, so a tighter settled width can't overflow.
+    // Currency keeps its breathing-room pad (baked into the advance).
     const kernedWidths = measureKernedSlotWidths(font, parts, fontSize);
     const targetWidths = new Map<string, number>();
     for (const part of parts) {
-      const advance = computeSlotWidth(part, font, metrics, letterSpacing);
       const kerned = kernedWidths.get(part.key);
-      if (kerned == null) {
-        targetWidths.set(part.key, advance);
+      if (kerned == null || part.kind === "currency") {
+        targetWidths.set(part.key, computeSlotWidth(part, font, metrics, letterSpacing));
         continue;
       }
-      targetWidths.set(part.key, Math.max(kerned + letterSpacing, advance));
+      targetWidths.set(part.key, kerned + letterSpacing);
     }
 
     const buildSnapInstructions = (): SnapInstruction[] => {
