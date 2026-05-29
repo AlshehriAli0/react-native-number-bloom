@@ -29,20 +29,28 @@ export const makeSlot = (part: KeyedPart, makeMutableFn: (v: number) => SharedVa
   blurSV: makeMutableFn(0),
 });
 
-/** Add missing slots for the current parts; refresh the displayed glyph for existing symbol slots. */
+/**
+ * Add missing slots for the current parts and refresh the displayed glyph for
+ * existing symbol slots. Returns true if any symbol glyph changed in place
+ * (e.g. currency $→€, compact K→M, a locale's group separator) so the caller
+ * can rebuild views when the slot order is otherwise unchanged.
+ */
 export const ensureSlots = (
   slotsMap: SlotMap,
   parts: readonly KeyedPart[],
   makeMutableFn: (v: number) => SharedValue<number>
-): void => {
+): boolean => {
+  let glyphChanged = false;
   for (const part of parts) {
     const existing = slotsMap.get(part.key);
     if (!existing) {
       slotsMap.set(part.key, makeSlot(part, makeMutableFn));
     } else if (part.type === "symbol" && existing.char !== part.char) {
       existing.char = part.char;
+      glyphChanged = true;
     }
   }
+  return glyphChanged;
 };
 
 /** Longest total animation duration across all tracks, plus a one-frame slack. */
