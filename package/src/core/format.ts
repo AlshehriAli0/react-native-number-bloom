@@ -14,7 +14,7 @@ const cacheKey = (locales: Intl.LocalesArgument, options: Intl.NumberFormatOptio
   return `${loc}|${JSON.stringify(options ?? {})}`;
 };
 
-export const getFormatter = (
+const getFormatter = (
   locales: Intl.LocalesArgument,
   options: Intl.NumberFormatOptions | undefined
 ): Intl.NumberFormat => {
@@ -83,7 +83,7 @@ const getZeroCodePoint = (formatter: Intl.NumberFormat): number => {
  * characters as static symbols — they still update on each new `parts`, but
  * jump instead of rolling.
  */
-export const isStandardNotation = (options: Intl.NumberFormatOptions | undefined): boolean =>
+const isStandardNotation = (options: Intl.NumberFormatOptions | undefined): boolean =>
   !options?.notation || options.notation === "standard";
 
 /** Split a formatted number into stably-keyed parts (`integer:N` from right, `fraction:N` from left) for diffing. */
@@ -130,7 +130,7 @@ export const formatToKeyedParts = (
           key: `integer:${positionFromRight}`,
           type: rollable ? "digit" : "symbol",
           kind: "integer",
-          char: ch,
+          char: rollable ? String(digit) : ch,
           digitValue: rollable ? digit : -1,
           power: rollable ? 10 ** positionFromRight : undefined,
         });
@@ -144,7 +144,7 @@ export const formatToKeyedParts = (
           key: `fraction:${fractionCursor}`,
           type: rollable ? "digit" : "symbol",
           kind: "fraction",
-          char: ch,
+          char: rollable ? String(digit) : ch,
           digitValue: rollable ? digit : -1,
           power: rollable ? 10 ** -(fractionCursor + 1) : undefined,
         });

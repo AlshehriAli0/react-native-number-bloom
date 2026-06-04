@@ -31,7 +31,7 @@ const fontHasAllGlyphs = (font: SkFont, char: string): boolean => {
   return true;
 };
 
-export const substituteForFont = (font: SkFont, char: string): string => {
+const substituteForFont = (font: SkFont, char: string): string => {
   if (char.length === 0) return char;
   const c = getCache(font);
   const cached = c.get(char);

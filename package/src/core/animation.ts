@@ -19,7 +19,7 @@ export const resolveValueTiming = (
   next: number
 ): TimingConfig => (typeof timing === "function" ? timing(prev, next) : timing);
 
-export const makeSlot = (part: KeyedPart, makeMutableFn: (v: number) => SharedValue<number>): SlotState => ({
+const makeSlot = (part: KeyedPart, makeMutableFn: (v: number) => SharedValue<number>): SlotState => ({
   type: part.type,
   kind: part.kind,
   char: part.char,
