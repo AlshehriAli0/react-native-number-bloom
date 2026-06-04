@@ -1,4 +1,5 @@
 import { type SkFont, Text as SkiaText } from "@shopify/react-native-skia";
+import { memo } from "react";
 import { type SharedValue, useDerivedValue } from "react-native-reanimated";
 import type { GlyphMetrics } from "../core/metrics";
 import { SlotChrome } from "./slot-chrome";
@@ -14,8 +15,8 @@ interface SymbolSlotProps {
   color: string;
 }
 
-/** Static glyph slot (commas, decimal marks, currency, prefix/suffix). */
-export const SymbolSlot = ({
+/** Static glyph slot (commas, decimal marks, currency, prefix/suffix). Memoized — see DigitSlot. */
+export const SymbolSlot = memo(function SymbolSlot({
   char,
   precedingWidths,
   opacity,
@@ -24,7 +25,7 @@ export const SymbolSlot = ({
   metrics,
   font,
   color,
-}: SymbolSlotProps) => {
+}: SymbolSlotProps) {
   const transform = useDerivedValue(() => {
     let x = 0;
     for (const sv of precedingWidths) x += sv.get();
@@ -36,4 +37,4 @@ export const SymbolSlot = ({
       <SkiaText color={color} font={font} text={char} x={0} y={metrics.baselineY} />
     </SlotChrome>
   );
-};
+});

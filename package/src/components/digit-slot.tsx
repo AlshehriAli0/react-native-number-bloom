@@ -1,5 +1,5 @@
 import { Group, rect, type SkFont, Text as SkiaText } from "@shopify/react-native-skia";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { type SharedValue, useDerivedValue } from "react-native-reanimated";
 import { DIGIT_KEYS } from "../core/constants";
 import type { GlyphMetrics } from "../core/metrics";
@@ -18,8 +18,15 @@ interface DigitSlotProps {
   color: string;
 }
 
-/** Vertical 0–9 strip clipped to one line; `translateY` derives from the master value via `floor(v/power) % 10`. */
-export const DigitSlot = ({
+/**
+ * Vertical 0–9 strip clipped to one line; `translateY` derives from the master value via `floor(v/power) % 10`.
+ *
+ * Memoized: every prop is referentially stable across a `value` change (SharedValues
+ * from the slot map, memoized font/metrics, `precedingWidths` from the slotViews memo),
+ * so re-rendering the parent skips the whole per-slot Skia subtree — value changes
+ * stay pure UI-thread shared-value animation.
+ */
+export const DigitSlot = memo(function DigitSlot({
   valueSV,
   width,
   power,
@@ -30,7 +37,7 @@ export const DigitSlot = ({
   metrics,
   font,
   color,
-}: DigitSlotProps) => {
+}: DigitSlotProps) {
   const h = metrics.lineHeight;
 
   const transform = useDerivedValue(() => {
@@ -70,4 +77,4 @@ export const DigitSlot = ({
       </Group>
     </SlotChrome>
   );
-};
+});
