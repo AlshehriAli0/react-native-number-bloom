@@ -1,5 +1,6 @@
 import { Canvas, type SkFont } from "@shopify/react-native-skia";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Platform } from "react-native";
 import Animated, {
   makeMutable,
   type SharedValue,
@@ -56,6 +57,7 @@ export const NumberBloom = ({
   fontSize = DEFAULT_FONT_SIZE,
   color = DEFAULT_COLOR,
   letterSpacing = 0,
+  opaque = false,
   animated = true,
   shouldAnimate,
   valueTiming = DEFAULT_VALUE_TIMING,
@@ -437,7 +439,8 @@ export const NumberBloom = ({
   return (
     // direction: "ltr" pins x=0 to the left under RTL (Canvas is wider than the clip).
     <Animated.View style={[{ height: metrics.lineHeight, overflow: "hidden", direction: "ltr" }, containerStyle]}>
-      <Canvas style={{ width: canvasWidth, height: metrics.lineHeight }}>
+      {/* SurfaceView only helps on Android; on iOS it would just paint an unwanted opaque backdrop. */}
+      <Canvas opaque={opaque && Platform.OS === "android"} style={{ width: canvasWidth, height: metrics.lineHeight }}>
         {slotViews.items.map(item =>
           item.type === "digit" ? (
             <DigitSlot

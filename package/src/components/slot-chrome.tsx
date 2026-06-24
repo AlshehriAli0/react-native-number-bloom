@@ -1,6 +1,6 @@
 import { Blur, Group, Paint } from "@shopify/react-native-skia";
 import type { ReactNode } from "react";
-import type { SharedValue } from "react-native-reanimated";
+import { type SharedValue, useDerivedValue } from "react-native-reanimated";
 
 interface SlotChromeProps {
   transform: SharedValue<{ translateX: number }[]>;
@@ -13,6 +13,14 @@ interface SlotChromeProps {
 
 /** Per-slot wrapper for opacity + (optional) blur + translateX. */
 export const SlotChrome = ({ transform, opacity, blur, bloomEnabled, children }: SlotChromeProps) => {
+  // Snap the animated blur radius to 0.25-pt steps. Skia's blur-mask cache keys
+  // on sigma, so the raw tween (a unique float every vsync) misses the cache and
+  // recomputes the Gaussian each frame for every entering slot. Quantizing turns
+  // a 0→2 ramp into ~8 cache keys; the step is too small to see mid-bloom.
+  const quantizedBlur = useDerivedValue(() => {
+    "worklet";
+    return Math.round(blur.get() * 4) / 4;
+  });
   if (!bloomEnabled) {
     return (
       <Group transform={transform} opacity={opacity}>
@@ -25,7 +33,7 @@ export const SlotChrome = ({ transform, opacity, blur, bloomEnabled, children }:
       <Group
         layer={
           <Paint opacity={opacity}>
-            <Blur blur={blur} mode="clamp" />
+            <Blur blur={quantizedBlur} mode="clamp" />
           </Paint>
         }
       >

@@ -80,6 +80,18 @@ export interface NumberBloomProps {
   /** Extra space added between glyphs, in points. Default: 0. */
   letterSpacing?: number;
 
+  /**
+   * Android only: draw on a `SkiaSurfaceView` instead of the default
+   * `SkiaTextureView`, dropping the per-frame GPU texture copy that janks
+   * low-end Android.
+   *
+   * Trade-off: the canvas turns opaque (no transparent background) and may
+   * ignore the parent's clip on some Android versions. Best on a solid-color
+   * background; test your layout. Ignored on iOS, so pass it freely.
+   * Default: `false`.
+   */
+  opaque?: boolean;
+
   /** When `false`, value changes apply instantly. Default: `true`. */
   animated?: boolean;
 
