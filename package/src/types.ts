@@ -1,4 +1,5 @@
-import type { SkFont } from "@shopify/react-native-skia";
+import type { CanvasRef, SkFont } from "@shopify/react-native-skia";
+import type { RefObject } from "react";
 import type { EasingFunction, EasingFunctionFactory } from "react-native-reanimated";
 
 /** Duration + easing pair for a single tween. */
@@ -145,4 +146,13 @@ export interface NumberBloomProps {
 
   /** Fired when all animated updates settle. */
   onAnimationEnd?: () => void;
+
+  /**
+   * Ref forwarded to the internal Skia `<Canvas>`. Create with `useCanvasRef()`.
+   * Lets you call `redraw()` to repaint in place — e.g. to recover a canvas
+   * that paints blank after a long background
+   * (https://github.com/Shopify/react-native-skia/issues/3695) without
+   * remounting.
+   */
+  canvasRef?: RefObject<CanvasRef | null>;
 }

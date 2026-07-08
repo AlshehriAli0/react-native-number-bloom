@@ -69,6 +69,7 @@ export const NumberBloom = ({
   maxIntegerDigits = DEFAULT_MAX_INTEGER_DIGITS,
   onAnimationStart,
   onAnimationEnd,
+  canvasRef,
 }: NumberBloomProps) => {
   const systemFont = useMemo<SkFont | null>(
     () => (fontProp ? null : resolveSystemFont(fontSize)),
@@ -440,7 +441,11 @@ export const NumberBloom = ({
     // direction: "ltr" pins x=0 to the left under RTL (Canvas is wider than the clip).
     <Animated.View style={[{ height: metrics.lineHeight, overflow: "hidden", direction: "ltr" }, containerStyle]}>
       {/* SurfaceView only helps on Android; on iOS it would just paint an unwanted opaque backdrop. */}
-      <Canvas opaque={opaque && Platform.OS === "android"} style={{ width: canvasWidth, height: metrics.lineHeight }}>
+      <Canvas
+        ref={canvasRef}
+        opaque={opaque && Platform.OS === "android"}
+        style={{ width: canvasWidth, height: metrics.lineHeight }}
+      >
         {slotViews.items.map(item =>
           item.type === "digit" ? (
             <DigitSlot
