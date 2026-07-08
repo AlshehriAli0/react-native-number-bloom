@@ -1,6 +1,6 @@
 {
   "name": "react-native-number-bloom",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Smooth animated numbers for React Native. Digits roll, fade, and blur as the value changes. Skia-rendered with full Intl.NumberFormat support.",
   "main": "lib/index",
   "module": "lib/index",
